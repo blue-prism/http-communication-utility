@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<process name="Utility - HTTP" version="6.7.0.18390" bpversion="6.9.0.26970" narrative="Communicates with web services using the HTTP protocol.&#xD;&#xA;&#xD;&#xA;v6.9" byrefcollection="true" type="object" runmode="Background" preferredid="6efb1579-126a-4563-b2e9-3d9e432c1a79">
+<process name="Utility - HTTP" version="6.7.0.18390" bpversion="6.9.0.26970" narrative="Communicates with web services using the HTTP protocol." byrefcollection="true" type="object" runmode="Background" preferredid="6efb1579-126a-4563-b2e9-3d9e432c1a79">
   <appdef>
     <element name="Application Root">
       <id>2ba17e26-49eb-43ed-84dd-c40e67e990b0</id>
@@ -28,7 +28,7 @@
     <name>Post</name>
     <view>
       <camerax>-3</camerax>
-      <cameray>35</cameray>
+      <cameray>105</cameray>
       <zoom version="2">1.25</zoom>
     </view>
   </subsheet>
@@ -36,15 +36,15 @@
     <name>Post JSON</name>
     <view>
       <camerax>-61</camerax>
-      <cameray>63</cameray>
+      <cameray>105</cameray>
       <zoom version="2">1.25</zoom>
     </view>
   </subsheet>
   <subsheet subsheetid="d30e8f45-db72-40d2-9f17-9700006fe152" type="Normal" published="True">
     <name>HTTP Request</name>
     <view>
-      <camerax>50</camerax>
-      <cameray>47</cameray>
+      <camerax>-125</camerax>
+      <cameray>26</cameray>
       <zoom version="2">1.25</zoom>
     </view>
   </subsheet>
@@ -52,7 +52,7 @@
     <name>HTTP Request File</name>
     <view>
       <camerax>0</camerax>
-      <cameray>0</cameray>
+      <cameray>-21</cameray>
       <zoom version="2">1.25</zoom>
     </view>
   </subsheet>
@@ -188,6 +188,8 @@ End Function]]></code>
       <input type="password" name="Proxy Password" narrative="OPTIONAL: The proxy password" stage="Proxy Password" />
       <input type="collection" name="Headers" narrative="OPTIONAL: HTTP Headers" stage="Headers" />
       <input type="text" name="Accept" narrative="OPTIONAL: Accept" stage="Accept" />
+      <input type="flag" name="Use Bearer Token" narrative="OPTIONAL: Set this to true if you have been supplied a bearer token." stage="Use Bearer Token" />
+      <input type="text" name="Bearer Token" narrative="OPTIONAL: The bearer token supplied for use with the destination you are working with." stage="Bearer Token" />
     </inputs>
     <onsuccess>e42b0caa-40c1-4a89-a873-f6977581053b</onsuccess>
     <displayx>15</displayx>
@@ -202,7 +204,7 @@ End Function]]></code>
       <output type="number" name="Status Code" narrative="The HTTP status code associated with the request." stage="ResultCode" />
     </outputs>
     <displayx>15</displayx>
-    <displayy>165</displayy>
+    <displayy>180</displayy>
   </stage>
   <stage stageid="14154308-012d-47e4-a707-8ca80b73651e" name="new" type="Note">
     <subsheetid>925e0261-2b2e-41ed-b555-4c5ccf8a00fc</subsheetid>
@@ -273,7 +275,7 @@ body=sb.ToString()
     <private />
     <alwaysinit />
     <displayx>-225</displayx>
-    <displayy>270</displayy>
+    <displayy>375</displayy>
     <displaywidth>90</displaywidth>
     <displayheight>30</displayheight>
   </stage>
@@ -366,7 +368,7 @@ body=sb.ToString()
       <output type="number" name="Status Code" narrative="The HTTP status code associated with the request." stage="ResultCode" />
     </outputs>
     <displayx>-15</displayx>
-    <displayy>60</displayy>
+    <displayy>135</displayy>
   </stage>
   <stage stageid="878a70a1-d658-4563-b27c-245f947b74be" name="Result" type="Data">
     <subsheetid>ecff5a78-99b1-4ecb-a356-a075c487ef71</subsheetid>
@@ -375,7 +377,7 @@ body=sb.ToString()
     <private />
     <alwaysinit />
     <displayx>-255</displayx>
-    <displayy>195</displayy>
+    <displayy>240</displayy>
     <displaywidth>90</displaywidth>
     <displayheight>30</displayheight>
   </stage>
@@ -401,10 +403,12 @@ body=sb.ToString()
       <input type="text" name="Proxy Username" narrative="OPTIONAL: The proxy username" stage="Proxy Username" />
       <input type="password" name="Proxy Password" narrative="OPTIONAL: The proxy password" stage="Proxy Password" />
       <input type="collection" name="Headers" narrative="OPTIONAL: Headers Collection" stage="Headers" />
+      <input type="flag" name="Use Bearer Token" narrative="OPTIONAL: Set to True if using a Bearer Token for Authorization" stage="Use Bearer Token" />
+      <input type="text" name="Bearer Token" narrative="OPTIONAL: Enter bearer token value here if one has been provided." stage="Bearer Token" />
     </inputs>
     <onsuccess>6b571f09-555c-45a8-9475-957d41cafb24</onsuccess>
     <displayx>-15</displayx>
-    <displayy>-30</displayy>
+    <displayy>15</displayy>
   </stage>
   <stage stageid="696696c8-af04-4075-aea0-a8024e2431fe" name="Address URL" type="Data">
     <subsheetid>ecff5a78-99b1-4ecb-a356-a075c487ef71</subsheetid>
@@ -520,6 +524,8 @@ body=sb.ToString()
       <input type="text" name="certID" expr="[Certificate ID]" />
       <input type="flag" name="forcePreAuth" expr="[Force Pre Authorization]" />
       <input type="flag" name="usingFile" expr="[File]" />
+      <input type="text" name="Bearer Token" expr="[Bearer Token]" />
+      <input type="flag" name="UseBearerToken" expr="[Use Bearer Token]" />
     </inputs>
     <outputs>
       <output type="text" name="resultData" stage="Result" />
@@ -566,11 +572,18 @@ body=sb.ToString()
 	  End If
 	End If
 
+	' Be aware that if you use forcePreAuth as well as UseBearerToken then forcePreAuth gets priority.
+	If UseBearerToken And Not forcePreAuth Then
+		httpRequest.Headers.Add("Authorization","Bearer " & Bearer_Token)
+	End If
+
+    ' Make sure that if you use UseBearerToken check that the Headers parameter doesn't have an Authorization entry.
 	If Not headers Is Nothing Then
 		For Each r As DataRow In headers.Rows
 			For Each c As DataColumn In headers.Columns
 				Dim columnName As String = c.ColumnName
 				Dim val As String = r(columnName).ToString
+				
 				request.Headers.Add(columnName,val)
 			Next
 			Exit For ' Only one row is allowed
@@ -634,7 +647,7 @@ End Try]]></code>
     <private />
     <alwaysinit />
     <displayx>-240</displayx>
-    <displayy>375</displayy>
+    <displayy>450</displayy>
     <displaywidth>90</displaywidth>
     <displayheight>30</displayheight>
   </stage>
@@ -691,6 +704,8 @@ End Try]]></code>
       <input type="text" name="Certificate ID" narrative="OPTIONAL: The id of the client authentication certificate" stage="Certificate ID" />
       <input type="flag" name="Force Pre Authorization" narrative="OPTIONAL: Force the request to send the authorization headers" stage="Force Pre Authorization" />
       <input type="flag" name="File URL" narrative="OPTIONAL: Is the JSON Body a file instead?" stage="File" />
+      <input type="flag" name="Use Bearer Token" narrative="OPTIONAL: If you need bearer token authorization set this to true." stage="Use Bearer Token" />
+      <input type="text" name="Bearer Token" narrative="OPTIONAL: If you have a bearer token and need to use authorization" stage="Bearer Token" />
     </inputs>
     <onsuccess>1fa7def4-c6a8-4325-9bc8-2c6027c0b8e8</onsuccess>
     <displayx>0</displayx>
@@ -801,7 +816,7 @@ End Try]]></code>
     <onsuccess>37166627-b66b-4a9c-a321-539933de2123</onsuccess>
     <processid>d30e8f45-db72-40d2-9f17-9700006fe152</processid>
     <displayx>-15</displayx>
-    <displayy>15</displayy>
+    <displayy>75</displayy>
   </stage>
   <stage stageid="33b3447c-a55e-4af3-be35-6cb5624d6a4f" name="Headers" type="Collection">
     <subsheetid>d30e8f45-db72-40d2-9f17-9700006fe152</subsheetid>
@@ -831,7 +846,7 @@ End Try]]></code>
     <private />
     <alwaysinit />
     <displayx>-195</displayx>
-    <displayy>195</displayy>
+    <displayy>300</displayy>
     <displaywidth>90</displaywidth>
     <displayheight>30</displayheight>
   </stage>
@@ -854,6 +869,8 @@ End Try]]></code>
       <input type="text" name="Certificate ID" narrative="OPTIONAL: The id of the client authentication certificate" expr="" />
       <input type="flag" name="Force Pre Authorization" narrative="OPTIONAL: Force the request to send the authorization headers" expr="" />
       <input type="flag" name="File URL" narrative="OPTIONAL: Is the JSON Body a file instead?" expr="" />
+      <input type="flag" name="Use Bearer Token" friendlyname="Use Bearer Token" narrative="OPTIONAL: If you need bearer token authorization set this to true." expr="[Use Bearer Token]" />
+      <input type="text" name="Bearer Token" friendlyname="Bearer Token" narrative="OPTIONAL: If you have a bearer token and need to use authorization" expr="[Bearer Token]" />
     </inputs>
     <outputs>
       <output type="text" name="Result" narrative="The result from the Post query." stage="Result" />
@@ -1091,7 +1108,7 @@ Encoded_URL = HttpUtility.UrlEncode( URL )]]></code>
     <private />
     <alwaysinit />
     <displayx>-150</displayx>
-    <displayy>375</displayy>
+    <displayy>450</displayy>
     <displaywidth>90</displaywidth>
     <displayheight>30</displayheight>
   </stage>
@@ -1102,7 +1119,7 @@ Encoded_URL = HttpUtility.UrlEncode( URL )]]></code>
     <private />
     <alwaysinit />
     <displayx>-165</displayx>
-    <displayy>195</displayy>
+    <displayy>240</displayy>
     <displaywidth>90</displaywidth>
     <displayheight>30</displayheight>
   </stage>
@@ -1113,7 +1130,7 @@ Encoded_URL = HttpUtility.UrlEncode( URL )]]></code>
     <private />
     <alwaysinit />
     <displayx>-150</displayx>
-    <displayy>270</displayy>
+    <displayy>375</displayy>
     <displaywidth>90</displaywidth>
     <displayheight>30</displayheight>
   </stage>
@@ -1121,17 +1138,17 @@ Encoded_URL = HttpUtility.UrlEncode( URL )]]></code>
     <subsheetid>f3a55ad6-3bfa-4401-baa9-0e50afe42879</subsheetid>
     <loginhibit />
     <font family="Segoe UI" size="10" style="Regular" color="7FB2E5" />
-    <displayx>-300</displayx>
+    <displayx>-315</displayx>
     <displayy>-45</displayy>
-    <displaywidth>210</displaywidth>
-    <displayheight>195</displayheight>
+    <displaywidth>225</displaywidth>
+    <displayheight>255</displayheight>
   </stage>
   <stage stageid="ae023e33-e349-4bf0-80e0-7e3794a1dbc2" name="Protected Variables" type="Block">
     <subsheetid>f3a55ad6-3bfa-4401-baa9-0e50afe42879</subsheetid>
     <loginhibit />
     <font family="Segoe UI" size="10" style="Regular" color="FFFF99" />
     <displayx>-270</displayx>
-    <displayy>165</displayy>
+    <displayy>270</displayy>
     <displaywidth>150</displaywidth>
     <displayheight>60</displayheight>
   </stage>
@@ -1140,7 +1157,7 @@ Encoded_URL = HttpUtility.UrlEncode( URL )]]></code>
     <loginhibit />
     <font family="Segoe UI" size="10" style="Regular" color="CCFFCC" />
     <displayx>-300</displayx>
-    <displayy>240</displayy>
+    <displayy>345</displayy>
     <displaywidth>210</displaywidth>
     <displayheight>105</displayheight>
   </stage>
@@ -1151,14 +1168,14 @@ Encoded_URL = HttpUtility.UrlEncode( URL )]]></code>
     <displayx>-315</displayx>
     <displayy>-45</displayy>
     <displaywidth>210</displaywidth>
-    <displayheight>195</displayheight>
+    <displayheight>240</displayheight>
   </stage>
   <stage stageid="2e4c34da-85e1-4b3d-86a2-de7a6b10fcf6" name="Outputs" type="Block">
     <subsheetid>ecff5a78-99b1-4ecb-a356-a075c487ef71</subsheetid>
     <loginhibit />
     <font family="Segoe UI" size="10" style="Regular" color="CCFFCC" />
     <displayx>-315</displayx>
-    <displayy>165</displayy>
+    <displayy>210</displayy>
     <displaywidth>210</displaywidth>
     <displayheight>105</displayheight>
   </stage>
@@ -1169,14 +1186,14 @@ Encoded_URL = HttpUtility.UrlEncode( URL )]]></code>
     <displayx>-300</displayx>
     <displayy>-45</displayy>
     <displaywidth>210</displaywidth>
-    <displayheight>375</displayheight>
+    <displayheight>435</displayheight>
   </stage>
   <stage stageid="a42642fa-1d93-42e4-942a-cb7a7087efef" name="Outputs" type="Block">
     <subsheetid>d30e8f45-db72-40d2-9f17-9700006fe152</subsheetid>
     <loginhibit />
     <font family="Segoe UI" size="10" style="Regular" color="CCFFCC" />
     <displayx>-300</displayx>
-    <displayy>345</displayy>
+    <displayy>420</displayy>
     <displaywidth>210</displaywidth>
     <displayheight>105</displayheight>
   </stage>
@@ -1247,6 +1264,8 @@ Encoded_URL = HttpUtility.UrlEncode( URL )]]></code>
       <input type="flag" name="forcePreAuth" expr="[Force Pre Authorization]" />
       <input type="flag" name="usingFile" expr="[File]" />
       <input type="text" name="FilePath" expr="[FilePath]" />
+      <input type="flag" name="Use Bearer Token" expr="[Use Bearer Token]" />
+      <input type="text" name="Bearer Token" expr="[Bearer Token]" />
     </inputs>
     <outputs>
       <output type="text" name="resultData" stage="Result" />
@@ -1291,6 +1310,11 @@ Encoded_URL = HttpUtility.UrlEncode( URL )]]></code>
 	  If Not String.IsNullOrEmpty(certID) Then
 		httpRequest.ClientCertificates.Add(m_Certificates(certID))
 	  End If
+	End If
+
+' Be aware that if you use forcePreAuth as well as UseBearerToken then forcePreAuth gets priority.
+	If Use_Bearer_Token And Not forcePreAuth Then
+		httpRequest.Headers.Add("Authorization","Bearer " & Bearer_Token)
 	End If
 
 	For Each r As DataRow In headers.Rows
@@ -1372,7 +1396,7 @@ End Try]]></code>
     <private />
     <alwaysinit />
     <displayx>-210</displayx>
-    <displayy>345</displayy>
+    <displayy>390</displayy>
     <displaywidth>90</displaywidth>
     <displayheight>30</displayheight>
   </stage>
@@ -1430,6 +1454,8 @@ End Try]]></code>
       <input type="flag" name="Force Pre Authorization" narrative="OPTIONAL: Force the request to send the authorization headers" stage="Force Pre Authorization" />
       <input type="flag" name="File URL" narrative="OPTIONAL: Is the JSON Body a file instead?" stage="File" />
       <input type="text" name="FilePath" narrative="OPTIONAL: If requesting a binary file (ex. PDF) set this to the path and file name where the file should be saved. NOTE: File name should include the file extension." stage="FilePath" />
+      <input type="flag" name="User Bearer Token" stage="User Bearer Token" />
+      <input type="text" name="Bearer Token" narrative="OPTIONAL: Enter bearer token value here if one has been provided. " stage="Bearer Token" />
     </inputs>
     <onsuccess>00fb6208-ae39-4f9d-92d7-a336172eff1e</onsuccess>
     <displayx>15</displayx>
@@ -1595,7 +1621,7 @@ End Try]]></code>
     <private />
     <alwaysinit />
     <displayx>-135</displayx>
-    <displayy>345</displayy>
+    <displayy>390</displayy>
     <displaywidth>90</displaywidth>
     <displayheight>30</displayheight>
   </stage>
@@ -1606,14 +1632,14 @@ End Try]]></code>
     <displayx>-285</displayx>
     <displayy>-75</displayy>
     <displaywidth>210</displaywidth>
-    <displayheight>375</displayheight>
+    <displayheight>420</displayheight>
   </stage>
   <stage stageid="dd3bc439-ff26-4457-876e-06b3b8139364" name="Outputs" type="Block">
     <subsheetid>74a20e65-147b-4dea-867e-fa08fbea81cb</subsheetid>
     <loginhibit />
     <font family="Segoe UI" size="10" style="Regular" color="CCFFCC" />
     <displayx>-285</displayx>
-    <displayy>315</displayy>
+    <displayy>360</displayy>
     <displaywidth>210</displaywidth>
     <displayheight>105</displayheight>
   </stage>
@@ -1720,7 +1746,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     <private />
     <alwaysinit />
     <displayx>-240</displayx>
-    <displayy>420</displayy>
+    <displayy>495</displayy>
     <displaywidth>90</displaywidth>
     <displayheight>30</displayheight>
   </stage>
@@ -1731,7 +1757,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     <private />
     <alwaysinit />
     <displayx>-225</displayx>
-    <displayy>315</displayy>
+    <displayy>420</displayy>
     <displaywidth>90</displaywidth>
     <displayheight>30</displayheight>
   </stage>
@@ -1742,7 +1768,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     <private />
     <alwaysinit />
     <displayx>-255</displayx>
-    <displayy>240</displayy>
+    <displayy>285</displayy>
     <displaywidth>90</displaywidth>
     <displayheight>30</displayheight>
   </stage>
@@ -1753,7 +1779,114 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     <private />
     <alwaysinit />
     <displayx>-210</displayx>
-    <displayy>390</displayy>
+    <displayy>435</displayy>
+    <displaywidth>90</displaywidth>
+    <displayheight>30</displayheight>
+  </stage>
+  <stage stageid="4cc1b3b6-1b93-49d1-b5e1-a5dc0e638c79" name="Bearer Token" type="Data">
+    <subsheetid>d30e8f45-db72-40d2-9f17-9700006fe152</subsheetid>
+    <loginhibit />
+    <datatype>text</datatype>
+    <initialvalue />
+    <private />
+    <alwaysinit />
+    <displayx>-150</displayx>
+    <displayy>345</displayy>
+    <displaywidth>90</displaywidth>
+    <displayheight>30</displayheight>
+  </stage>
+  <stage stageid="a66aa3f4-5be4-4b29-89e7-0d6d6290a959" name="Use Bearer Token" type="Data">
+    <subsheetid>d30e8f45-db72-40d2-9f17-9700006fe152</subsheetid>
+    <datatype>flag</datatype>
+    <initialvalue />
+    <private />
+    <alwaysinit />
+    <displayx>-240</displayx>
+    <displayy>345</displayy>
+    <displaywidth>90</displaywidth>
+    <displayheight>30</displayheight>
+  </stage>
+  <stage stageid="d5dbfc7e-9901-49fd-b89b-add521619228" name="Note1" type="Note">
+    <subsheetid>d30e8f45-db72-40d2-9f17-9700006fe152</subsheetid>
+    <loginhibit />
+    <narrative>Force Pre Authorization - Make sure that this isn't used with Use Bearer Token. Only one Authorization header is needed.
+
+Headers Collection - If you use Use Bearer Token, make sure that this collection doesn't contain an Authorization header.
+
+Use Bearer Token is not configured to work using a Proxy.</narrative>
+    <font family="Segoe UI" size="14" style="Regular" color="FF0000" />
+    <displayx>-495</displayx>
+    <displayy>60</displayy>
+    <displaywidth>330</displaywidth>
+    <displayheight>210</displayheight>
+  </stage>
+  <stage stageid="83c65d81-f13a-4c5c-bfcb-4b96df052746" name="Bearer Token" type="Data">
+    <subsheetid>f3a55ad6-3bfa-4401-baa9-0e50afe42879</subsheetid>
+    <loginhibit />
+    <datatype>text</datatype>
+    <initialvalue />
+    <private />
+    <alwaysinit />
+    <displayx>-150</displayx>
+    <displayy>165</displayy>
+    <displaywidth>90</displaywidth>
+    <displayheight>30</displayheight>
+  </stage>
+  <stage stageid="d31ae653-1789-4539-9ddb-15301d438d16" name="Use Bearer Token" type="Data">
+    <subsheetid>f3a55ad6-3bfa-4401-baa9-0e50afe42879</subsheetid>
+    <datatype>flag</datatype>
+    <initialvalue />
+    <private />
+    <alwaysinit />
+    <displayx>-240</displayx>
+    <displayy>165</displayy>
+    <displaywidth>90</displaywidth>
+    <displayheight>30</displayheight>
+  </stage>
+  <stage stageid="efaa6f7c-43f9-4c18-aa5c-5cd3f3506386" name="Use Bearer Token" type="Data">
+    <subsheetid>ecff5a78-99b1-4ecb-a356-a075c487ef71</subsheetid>
+    <datatype>flag</datatype>
+    <initialvalue />
+    <private />
+    <alwaysinit />
+    <displayx>-255</displayx>
+    <displayy>165</displayy>
+  </stage>
+  <stage stageid="e39cecbe-6abc-430a-b5c2-7281e57af9af" name="Bearer Token" type="Data">
+    <subsheetid>ecff5a78-99b1-4ecb-a356-a075c487ef71</subsheetid>
+    <datatype>text</datatype>
+    <initialvalue />
+    <private />
+    <alwaysinit />
+    <displayx>-165</displayx>
+    <displayy>165</displayy>
+  </stage>
+  <stage stageid="28f476b7-37b6-4e88-93ad-d4a1b1e289f0" name="Use Bearer Token" type="Data">
+    <subsheetid>74a20e65-147b-4dea-867e-fa08fbea81cb</subsheetid>
+    <datatype>flag</datatype>
+    <initialvalue />
+    <private />
+    <alwaysinit />
+    <displayx>-225</displayx>
+    <displayy>315</displayy>
+    <displaywidth>90</displaywidth>
+    <displayheight>30</displayheight>
+  </stage>
+  <stage stageid="a1f6da3d-53c9-44b3-8489-e6db32ace249" name="Bearer Token" type="Data">
+    <subsheetid>74a20e65-147b-4dea-867e-fa08fbea81cb</subsheetid>
+    <datatype>text</datatype>
+    <initialvalue />
+    <private />
+    <alwaysinit />
+    <displayx>-135</displayx>
+    <displayy>315</displayy>
+  </stage>
+  <stage stageid="db3476b1-7e22-44fa-94ea-22a3292b2866" name="Note3" type="Note">
+    <loginhibit />
+    <narrative>Version: 6.9.1</narrative>
+    <font family="Segoe UI" size="10" style="Bold" color="FF0000" />
+    <displayx>15</displayx>
+    <displayy>-195</displayy>
     <displaywidth>90</displaywidth>
     <displayheight>30</displayheight>
   </stage>
